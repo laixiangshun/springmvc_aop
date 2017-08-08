@@ -3,6 +3,9 @@ package com.java.spring.aop;
 import java.lang.reflect.Method;
 import java.util.UUID;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
+
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.After;
@@ -14,9 +17,13 @@ import org.aspectj.lang.annotation.Before;
 import org.aspectj.lang.annotation.Pointcut;
 import org.aspectj.lang.reflect.MethodSignature;
 import org.springframework.stereotype.Component;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 
+import com.alibaba.fastjson.JSON;
 import com.java.spring.annotation.Log;
 import com.java.spring.annotation.ServiceLog;
+import com.java.spring.entity.User;
 
 /**
  * 定义aop切面
@@ -62,6 +69,20 @@ public class LogAop {
 		MethodSignature ms=(MethodSignature)joinPoint.getSignature();
 		Method m=ms.getMethod();
 		//System.out.println(m.getAnnotation(Log.class).name()+"\t标志"+tag.get());
+		HttpServletRequest request=((ServletRequestAttributes)RequestContextHolder.getRequestAttributes()).getRequest();
+		HttpSession session=request.getSession();
+		User user=(User)session.getAttribute("user");
+		String ip=request.getRemoteAddr();//ip
+		String params="";
+		//将参数转换为json格式字符串
+		if(joinPoint.getArgs()!=null && joinPoint.getArgs().length>0){
+			for(int i=0;i<joinPoint.getArgs().length;i++){
+				params+=JSON.toJSONString(joinPoint.getArgs()[i])+";";
+			}
+		}
+		System.out.println("ip地址:\t"+ip);
+		System.out.println("请求参数：\t"+params);
+		System.out.println("请求人:\t"+user.getName());
 		System.out.println(getServiceMthodDescription(joinPoint)+"\t标志"+tag.get());
 	}
 	//后置通知
